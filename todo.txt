@@ -1,0 +1,9 @@
+things to think about:
+
+if email has attachments over 10MB dont think trello will process the email.
+
+connection failures, if it times out etc should re try infinitely or number of attempts, exponential back off?
+
+any failure.  where should it log?  should it post to slack to say things went wrong?
+
+try and mark the email as unread afterwards
