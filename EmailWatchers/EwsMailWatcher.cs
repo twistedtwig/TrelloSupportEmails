@@ -41,19 +41,22 @@ namespace EmailWatchers
 
             //register callback to be able to inform when new messages arrive
             _callback = callback;
-
             _continueListening = true;
-
-            Connect();
+            ConnectToEws();
         }
 
-        private void Connect()
+        private void ConnectToEws()
         {
             if (_service == null)
             {
                 Console.WriteLine("Creating EWS Service");
                 _service = new ExchangeService();
                 _service.Credentials = new NetworkCredential(_settings.UserEmailAddress, _settings.Password);
+                if (!string.IsNullOrWhiteSpace(_settings.SharedEmailAddress))
+                {
+                    _service.HttpHeaders.Add("X-AnchorMailbox", _settings.SharedEmailAddress);
+                }
+                
 
                 // Look up the user's EWS endpoint by using Autodiscover.
                 _service.AutodiscoverUrl(_settings.UserEmailAddress, RedirectionCallback);
@@ -64,12 +67,11 @@ namespace EmailWatchers
             Console.WriteLine("attempting to open connection to {0}", _settings.UserEmailAddress);
 
             // Subscribe to streaming notifications in the Inbox. 
-            var streamingSubscription = _service.SubscribeToStreamingNotifications(
-                new FolderId[] {WellKnownFolderName.Inbox},
-                EventType.NewMail
-                );
-
-
+            StreamingSubscription streamingSubscription = 
+                _service.SubscribeToStreamingNotifications(string.IsNullOrWhiteSpace(_settings.SharedEmailAddress) 
+                ? new FolderId[] { WellKnownFolderName.Inbox } 
+                : new[] { new FolderId(WellKnownFolderName.Inbox, new Mailbox(_settings.SharedEmailAddress)) }, EventType.NewMail);
+            
             // Create a streaming connection to the service object, over which events are returned to the client.
             // Keep the streaming connection open for 30 minutes.
             _connection = new StreamingSubscriptionConnection(_service, 30);
@@ -112,7 +114,7 @@ namespace EmailWatchers
             //TODO add failure attempts drop out.
 
             Console.WriteLine("attempting to reconnect");
-            Connect();
+            ConnectToEws();
         }
 
         private void OnNotificationEvent(object sender, NotificationEventArgs args)

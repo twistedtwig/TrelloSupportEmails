@@ -124,3 +124,4 @@ UpgradeLog*.XML
 /Web/obj
 /Web/bin
 /*.suo
+/secureDetails.txt

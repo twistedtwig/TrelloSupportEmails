@@ -12,6 +12,7 @@ namespace TrelloManagement.Models.Settings
     public class EwsSettings
     {
         public string UserEmailAddress { get; set; }
+        public string SharedEmailAddress { get; set; }
         public String Password { get; set; }
     }
 
